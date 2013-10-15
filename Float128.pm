@@ -41,9 +41,12 @@ use overload
   '--'    => \&_overload_dec,
 ;
 
-use subs qw(F128_DIG);
+use subs qw(FLT128_DIG FLT128_MANT_DIG FLT128_MIN_EXP FLT128_MAX_EXP FLT128_MIN_10_EXP FLT128_MAX_10_EXP
+            M_Eq M_LOG2Eq M_LOG10Eq M_LN2q M_LN10q M_PIq M_PI_2q M_PI_4q M_1_PIq M_2_PIq
+            M_2_SQRTPIq M_SQRT2q M_SQRT1_2q
+            FLT128_MAX FLT128_MIN FLT128_EPSILON FLT128_DENORM_MIN);
 
-$Math::Float128::VERSION = '0.01';
+$Math::Float128::VERSION = '0.02';
 
 DynaLoader::bootstrap Math::Float128 $Math::Float128::VERSION;
 
@@ -51,16 +54,22 @@ DynaLoader::bootstrap Math::Float128 $Math::Float128::VERSION;
 @Math::Float128::EXPORT_OK = qw(
     flt128_set_prec flt128_get_prec InfF128 NaNF128 ZeroF128 UnityF128 is_NaNF128 
     is_InfF128 is_InfF128 is_ZeroF128 STRtoF128 NVtoF128 IVtoF128 UVtoF128 F128toSTR 
-    F128toSTRP F128toSTRP F128toF128 F128toNV
-    F128_DIG
+    F128toSTRP F128toF128 F128toNV
+    FLT128_DIG FLT128_MANT_DIG FLT128_MIN_EXP FLT128_MAX_EXP FLT128_MIN_10_EXP FLT128_MAX_10_EXP
+    M_Eq M_LOG2Eq M_LOG10Eq M_LN2q M_LN10q M_PIq M_PI_2q M_PI_4q M_1_PIq M_2_PIq
+    M_2_SQRTPIq M_SQRT2q M_SQRT1_2q
+    FLT128_MAX FLT128_MIN FLT128_EPSILON FLT128_DENORM_MIN
     cmp2NV
     );
 
 %Math::Float128::EXPORT_TAGS = (all => [qw(
     flt128_set_prec flt128_get_prec InfF128 NaNF128 ZeroF128 UnityF128 is_NaNF128 
     is_InfF128 is_InfF128 is_ZeroF128 STRtoF128 NVtoF128 IVtoF128 UVtoF128 F128toSTR 
-    F128toSTRP F128toSTRP F128toF128 F128toNV
-    F128_DIG
+    F128toSTRP F128toF128 F128toNV
+    FLT128_DIG FLT128_MANT_DIG FLT128_MIN_EXP FLT128_MAX_EXP FLT128_MIN_10_EXP FLT128_MAX_10_EXP
+    M_Eq M_LOG2Eq M_LOG10Eq M_LN2q M_LN10q M_PIq M_PI_2q M_PI_4q M_1_PIq M_2_PIq
+    M_2_SQRTPIq M_SQRT2q M_SQRT1_2q
+    FLT128_MAX FLT128_MIN FLT128_EPSILON FLT128_DENORM_MIN
     cmp2NV 
     )]);
 
@@ -141,7 +150,29 @@ sub new {
     die "Bad argument given to new";
 }
 
-sub F128_DIG {return _F128_DIG()}
+sub FLT128_DIG        {return _FLT128_DIG()}
+sub FLT128_MAX        {return _FLT128_MAX()}
+sub FLT128_MIN        {return _FLT128_MIN()}
+sub FLT128_EPSILON    {return _FLT128_EPSILON()}
+sub FLT128_DENORM_MIN {return _FLT128_DENORM_MIN()}
+sub FLT128_MANT_DIG   {return _FLT128_MANT_DIG()}
+sub FLT128_MIN_EXP    {return _FLT128_MIN_EXP()}
+sub FLT128_MAX_EXP    {return _FLT128_MAX_EXP()}
+sub FLT128_MIN_10_EXP {return _FLT128_MIN_10_EXP()}
+sub FLT128_MAX_10_EXP {return _FLT128_MAX_10_EXP()}
+sub M_Eq              {return _M_Eq()}
+sub M_LOG2Eq          {return _M_LOG2Eq()}
+sub M_LOG10Eq         {return _M_LOG10Eq()}
+sub M_LN2q            {return _M_LN2q()}
+sub M_LN10q           {return _M_LN10q()}
+sub M_PIq             {return _M_PIq()}
+sub M_PI_2q           {return _M_PI_2q()}
+sub M_PI_4q           {return _M_PI_4q()}
+sub M_1_PIq           {return _M_1_PIq()}
+sub M_2_PIq           {return _M_2_PIq()}
+sub M_2_SQRTPIq       {return _M_2_SQRTPIq()}
+sub M_SQRT2q          {return _M_SQRT2q()}
+sub M_SQRT1_2q        {return _M_SQRT1_2q()}
 
 1;
 
@@ -298,6 +329,12 @@ Math::Float128 - perl interface to C's __float128 operations
     If the Math::Float128 object $f < $nv returns -1.
     If it is > $nv, returns 1.
     Otherwise returns 0.
+
+=head1 BUGS
+
+   The mingw64 compilers have a buggy expq() function; therefore the
+   overloaded exp function doesn't return expq($arg) when a mingw64
+   compiler is in use - instead it returns e**$arg.
 
 
 =head1 LICENSE

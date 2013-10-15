@@ -17,3 +17,4 @@ t/pod.t
 t/10pow.t
 t/11stringification.t
 t/12trig.t
+t/13constants.t

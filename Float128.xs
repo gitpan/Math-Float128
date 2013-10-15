@@ -323,9 +323,9 @@ SV * _DBL_DIG(void) {
 #endif
 }
 
-SV * _F128_DIG(void) {
-#ifdef F128_DIG
-     return newSViv(F128_DIG);
+SV * _FLT128_DIG(void) {
+#ifdef FLT128_DIG
+     return newSViv(FLT128_DIG);
 #else 
      return newSViv(0);
 #endif
@@ -744,7 +744,11 @@ SV * _overload_exp(SV * a, SV * b, SV * third) {
      Newx(f, 1, float128);
      if(f == NULL) croak("Failed to allocate memory in _overload_exp() function");
 
+#ifdef __MINGW64_VERSION_MAJOR /* avoid calling expq() as it's buggy */
+     *f = powq(M_Eq, *(INT2PTR(float128 *, SvIV(SvRV(a)))));
+#else
      *f = expq(*(INT2PTR(float128 *, SvIV(SvRV(a)))));
+#endif
      
 
      obj_ref = newSV(0);
@@ -893,6 +897,363 @@ SV * F128toNV(SV * f) {
      return newSVnv((NV)(*(INT2PTR(float128 *, SvIV(SvRV(f))))));
 }
 
+/* #define FLT128_MAX 1.18973149535723176508575932662800702e4932Q */
+
+SV * _FLT128_MAX(void) {
+     float128 * f;
+     SV * obj_ref, * obj;
+
+     Newx(f, 1, float128);
+     if(f == NULL) croak("Failed to allocate memory in NaNF128() function");
+
+     obj_ref = newSV(0);
+     obj = newSVrv(obj_ref, "Math::Float128");
+
+     *f = FLT128_MAX;
+
+     sv_setiv(obj, INT2PTR(IV,f));
+     SvREADONLY_on(obj);
+     return obj_ref;
+}
+
+/* #define FLT128_MIN 3.36210314311209350626267781732175260e-4932Q */
+
+SV * _FLT128_MIN(void) {
+     float128 * f;
+     SV * obj_ref, * obj;
+
+     Newx(f, 1, float128);
+     if(f == NULL) croak("Failed to allocate memory in NaNF128() function");
+
+     obj_ref = newSV(0);
+     obj = newSVrv(obj_ref, "Math::Float128");
+
+     *f = FLT128_MIN;
+
+     sv_setiv(obj, INT2PTR(IV,f));
+     SvREADONLY_on(obj);
+     return obj_ref;
+}
+
+/* #define FLT128_EPSILON 1.92592994438723585305597794258492732e-34Q */
+
+SV * _FLT128_EPSILON(void) {
+     float128 * f;
+     SV * obj_ref, * obj;
+
+     Newx(f, 1, float128);
+     if(f == NULL) croak("Failed to allocate memory in NaNF128() function");
+
+     obj_ref = newSV(0);
+     obj = newSVrv(obj_ref, "Math::Float128");
+
+     *f = FLT128_EPSILON;
+
+     sv_setiv(obj, INT2PTR(IV,f));
+     SvREADONLY_on(obj);
+     return obj_ref;
+}
+
+/* #define FLT128_DENORM_MIN 6.475175119438025110924438958227646552e-4966Q */
+
+
+SV * _FLT128_DENORM_MIN(void) {
+     float128 * f;
+     SV * obj_ref, * obj;
+
+     Newx(f, 1, float128);
+     if(f == NULL) croak("Failed to allocate memory in NaNF128() function");
+
+     obj_ref = newSV(0);
+     obj = newSVrv(obj_ref, "Math::Float128");
+
+     *f = FLT128_DENORM_MIN;
+
+     sv_setiv(obj, INT2PTR(IV,f));
+     SvREADONLY_on(obj);
+     return obj_ref;
+}
+
+/* #define FLT128_MANT_DIG 113 */
+
+int _FLT128_MANT_DIG(void) {
+    return (int)FLT128_MANT_DIG;
+}
+
+/* #define FLT128_MIN_EXP (-16381) */
+
+int _FLT128_MIN_EXP(void) {
+    return (int)FLT128_MIN_EXP;
+}
+
+/* #define FLT128_MAX_EXP 16384 */
+
+int _FLT128_MAX_EXP(void) {
+    return (int)FLT128_MAX_EXP;
+}
+
+/* #define FLT128_MIN_10_EXP (-4931) */
+
+int _FLT128_MIN_10_EXP(void) {
+    return (int)FLT128_MIN_10_EXP;
+}
+
+/* #define FLT128_MAX_10_EXP 4932 */
+
+int _FLT128_MAX_10_EXP(void) {
+    return (int)FLT128_MAX_10_EXP;
+}
+
+/* #define HUGE_VALQ __builtin_huge_valq() */
+
+
+/*#define M_Eq		2.7182818284590452353602874713526625Q */  /* e */
+
+SV * _M_Eq(void) {
+     float128 * f;
+     SV * obj_ref, * obj;
+
+     Newx(f, 1, float128);
+     if(f == NULL) croak("Failed to allocate memory in NaNF128() function");
+
+     obj_ref = newSV(0);
+     obj = newSVrv(obj_ref, "Math::Float128");
+
+     *f = M_Eq;
+
+     sv_setiv(obj, INT2PTR(IV,f));
+     SvREADONLY_on(obj);
+     return obj_ref;
+}
+
+/* #define M_LOG2Eq	1.4426950408889634073599246810018921Q */  /* log_2 e */
+
+SV * _M_LOG2Eq(void) {
+     float128 * f;
+     SV * obj_ref, * obj;
+
+     Newx(f, 1, float128);
+     if(f == NULL) croak("Failed to allocate memory in NaNF128() function");
+
+     obj_ref = newSV(0);
+     obj = newSVrv(obj_ref, "Math::Float128");
+
+     *f = M_LOG2Eq;
+
+     sv_setiv(obj, INT2PTR(IV,f));
+     SvREADONLY_on(obj);
+     return obj_ref;
+}
+
+/* #define M_LOG10Eq	0.4342944819032518276511289189166051Q */  /* log_10 e */
+
+SV * _M_LOG10Eq(void) {
+     float128 * f;
+     SV * obj_ref, * obj;
+
+     Newx(f, 1, float128);
+     if(f == NULL) croak("Failed to allocate memory in NaNF128() function");
+
+     obj_ref = newSV(0);
+     obj = newSVrv(obj_ref, "Math::Float128");
+
+     *f = M_LOG10Eq;
+
+     sv_setiv(obj, INT2PTR(IV,f));
+     SvREADONLY_on(obj);
+     return obj_ref;
+}
+
+/* #define M_LN2q		0.6931471805599453094172321214581766Q */  /* log_e 2 */
+
+SV * _M_LN2q(void) {
+     float128 * f;
+     SV * obj_ref, * obj;
+
+     Newx(f, 1, float128);
+     if(f == NULL) croak("Failed to allocate memory in NaNF128() function");
+
+     obj_ref = newSV(0);
+     obj = newSVrv(obj_ref, "Math::Float128");
+
+     *f = M_LN2q;
+
+     sv_setiv(obj, INT2PTR(IV,f));
+     SvREADONLY_on(obj);
+     return obj_ref;
+}
+
+/* #define M_LN10q		2.3025850929940456840179914546843642Q */ /* log_e 10 */
+
+SV * _M_LN10q(void) {
+     float128 * f;
+     SV * obj_ref, * obj;
+
+     Newx(f, 1, float128);
+     if(f == NULL) croak("Failed to allocate memory in NaNF128() function");
+
+     obj_ref = newSV(0);
+     obj = newSVrv(obj_ref, "Math::Float128");
+
+     *f = M_LN10q;
+
+     sv_setiv(obj, INT2PTR(IV,f));
+     SvREADONLY_on(obj);
+     return obj_ref;
+}
+
+/* #define M_PIq		3.1415926535897932384626433832795029Q */  /* pi */
+
+SV * _M_PIq(void) {
+     float128 * f;
+     SV * obj_ref, * obj;
+
+     Newx(f, 1, float128);
+     if(f == NULL) croak("Failed to allocate memory in NaNF128() function");
+
+     obj_ref = newSV(0);
+     obj = newSVrv(obj_ref, "Math::Float128");
+
+     *f = M_PIq;
+
+     sv_setiv(obj, INT2PTR(IV,f));
+     SvREADONLY_on(obj);
+     return obj_ref;
+}
+
+/* #define M_PI_2q		1.5707963267948966192313216916397514Q */  /* pi/2 */
+
+SV * _M_PI_2q(void) {
+     float128 * f;
+     SV * obj_ref, * obj;
+
+     Newx(f, 1, float128);
+     if(f == NULL) croak("Failed to allocate memory in NaNF128() function");
+
+     obj_ref = newSV(0);
+     obj = newSVrv(obj_ref, "Math::Float128");
+
+     *f = M_PI_2q;
+
+     sv_setiv(obj, INT2PTR(IV,f));
+     SvREADONLY_on(obj);
+     return obj_ref;
+}
+
+/* #define M_PI_4q		0.7853981633974483096156608458198757Q */  /* pi/4 */
+
+SV * _M_PI_4q(void) {
+     float128 * f;
+     SV * obj_ref, * obj;
+
+     Newx(f, 1, float128);
+     if(f == NULL) croak("Failed to allocate memory in NaNF128() function");
+
+     obj_ref = newSV(0);
+     obj = newSVrv(obj_ref, "Math::Float128");
+
+     *f = M_PI_4q;
+
+     sv_setiv(obj, INT2PTR(IV,f));
+     SvREADONLY_on(obj);
+     return obj_ref;
+}
+
+/* #define M_1_PIq		0.3183098861837906715377675267450287Q */  /* 1/pi */
+
+SV * _M_1_PIq(void) {
+     float128 * f;
+     SV * obj_ref, * obj;
+
+     Newx(f, 1, float128);
+     if(f == NULL) croak("Failed to allocate memory in NaNF128() function");
+
+     obj_ref = newSV(0);
+     obj = newSVrv(obj_ref, "Math::Float128");
+
+     *f = M_1_PIq;
+
+     sv_setiv(obj, INT2PTR(IV,f));
+     SvREADONLY_on(obj);
+     return obj_ref;
+}
+
+/* #define M_2_PIq		0.6366197723675813430755350534900574Q */  /* 2/pi */
+
+SV * _M_2_PIq(void) {
+     float128 * f;
+     SV * obj_ref, * obj;
+
+     Newx(f, 1, float128);
+     if(f == NULL) croak("Failed to allocate memory in NaNF128() function");
+
+     obj_ref = newSV(0);
+     obj = newSVrv(obj_ref, "Math::Float128");
+
+     *f = M_2_PIq;
+
+     sv_setiv(obj, INT2PTR(IV,f));
+     SvREADONLY_on(obj);
+     return obj_ref;
+}
+
+/* #define M_2_SQRTPIq	1.1283791670955125738961589031215452Q */  /* 2/sqrt(pi) */
+
+SV * _M_2_SQRTPIq(void) {
+     float128 * f;
+     SV * obj_ref, * obj;
+
+     Newx(f, 1, float128);
+     if(f == NULL) croak("Failed to allocate memory in NaNF128() function");
+
+     obj_ref = newSV(0);
+     obj = newSVrv(obj_ref, "Math::Float128");
+
+     *f = M_2_SQRTPIq;
+
+     sv_setiv(obj, INT2PTR(IV,f));
+     SvREADONLY_on(obj);
+     return obj_ref;
+}
+
+/* #define M_SQRT2q	1.4142135623730950488016887242096981Q */  /* sqrt(2) */
+
+SV * _M_SQRT2q(void) {
+     float128 * f;
+     SV * obj_ref, * obj;
+
+     Newx(f, 1, float128);
+     if(f == NULL) croak("Failed to allocate memory in NaNF128() function");
+
+     obj_ref = newSV(0);
+     obj = newSVrv(obj_ref, "Math::Float128");
+
+     *f = M_SQRT2q;
+
+     sv_setiv(obj, INT2PTR(IV,f));
+     SvREADONLY_on(obj);
+     return obj_ref;
+}
+
+/* #define M_SQRT1_2q	0.7071067811865475244008443621048490Q */  /* 1/sqrt(2) */
+
+SV * _M_SQRT1_2q(void) {
+     float128 * f;
+     SV * obj_ref, * obj;
+
+     Newx(f, 1, float128);
+     if(f == NULL) croak("Failed to allocate memory in NaNF128() function");
+
+     obj_ref = newSV(0);
+     obj = newSVrv(obj_ref, "Math::Float128");
+
+     *f = M_SQRT1_2q;
+
+     sv_setiv(obj, INT2PTR(IV,f));
+     SvREADONLY_on(obj);
+     return obj_ref;
+}
+
 
 
 MODULE = Math::Float128	PACKAGE = Math::Float128	
@@ -1022,7 +1383,7 @@ _DBL_DIG ()
 		
 
 SV *
-_F128_DIG ()
+_FLT128_DIG ()
 		
 
 SV *
@@ -1221,4 +1582,92 @@ cmp2NV (flt128_obj, sv)
 SV *
 F128toNV (f)
 	SV *	f
+
+SV *
+_FLT128_MAX ()
+		
+
+SV *
+_FLT128_MIN ()
+		
+
+SV *
+_FLT128_EPSILON ()
+		
+
+SV *
+_FLT128_DENORM_MIN ()
+		
+
+int
+_FLT128_MANT_DIG ()
+		
+
+int
+_FLT128_MIN_EXP ()
+		
+
+int
+_FLT128_MAX_EXP ()
+		
+
+int
+_FLT128_MIN_10_EXP ()
+		
+
+int
+_FLT128_MAX_10_EXP ()
+		
+
+SV *
+_M_Eq ()
+		
+
+SV *
+_M_LOG2Eq ()
+		
+
+SV *
+_M_LOG10Eq ()
+		
+
+SV *
+_M_LN2q ()
+		
+
+SV *
+_M_LN10q ()
+		
+
+SV *
+_M_PIq ()
+		
+
+SV *
+_M_PI_2q ()
+		
+
+SV *
+_M_PI_4q ()
+		
+
+SV *
+_M_1_PIq ()
+		
+
+SV *
+_M_2_PIq ()
+		
+
+SV *
+_M_2_SQRTPIq ()
+		
+
+SV *
+_M_SQRT2q ()
+		
+
+SV *
+_M_SQRT1_2q ()
+		
 
