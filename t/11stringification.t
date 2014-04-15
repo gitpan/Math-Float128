@@ -11,8 +11,10 @@ my $ninf = F128toNV(InfF128(-1));
 my $pinf = F128toNV(InfF128(1));
 my $negzero = F128toNV(ZeroF128(-1));
 
-#my $ld = Math::Float128->new($pinf);
-#warn "\$ld: $ld\n";
+# Try to determine when the decimal point is a comma,
+# and set $dp accordingly.
+my $dp = '.';
+$dp = ',' unless Math::Float128->new('0,5') == Math::Float128->new(0);
 
 my $ok = 1;
 
@@ -21,8 +23,8 @@ for(-10 .. 10) {
     warn "\n\$_: $_ ", F128toNV(STRtoF128($_)), "\n";
     $ok = 0;
   }
-  unless(F128toNV(STRtoF128($_ + 0.5)) == $_ + 0.5) {
-    warn "\n\$_ + 0.5: ",$_ + 0.5, " ", F128toNV(STRtoF128($_ +0.5)), "\n";
+  unless(F128toNV(STRtoF128($_ + "0${dp}5")) == $_ + 0.5) {
+    warn "\n\$_ + 0.5: ",$_ + 0.5, " ", F128toNV(STRtoF128($_ + "0${dp}5")), "\n";
     $ok = 0;
   }
 }

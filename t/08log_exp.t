@@ -14,6 +14,11 @@ my $log_ld = log($exp_ld);
 my $two = Math::Float128->new(2.0);
 my $log = log($two);
 
+# Try to determine when the decimal point is a comma,
+# and set $dp accordingly.
+my $dp = '.';
+$dp = ',' unless Math::Float128->new('0,5') == Math::Float128->new(0);
+
 if(approx($exp_ld, $exp)) {print "ok 1\n"}
 else {
   warn "\n\$exp_ld: $exp_ld\n\$exp: $exp\n";
@@ -44,7 +49,7 @@ else {
   print "not ok 5\n";
 }
 
-if(approx($log, Math::Float128->new('6.9314718055994530943e-001'))) {print "ok 6\n"}
+if(approx($log, Math::Float128->new("6${dp}9314718055994530943e-001"))) {print "ok 6\n"}
 else {
   warn "\n\$log: $log\n";
   print "not ok 6\n";

@@ -1,7 +1,13 @@
+0.03
+ - Fix t/03arith.t, t/05cmp.t, t/08log_exp.t, t/11stringification.t, and t/13constants.t
+   to accommodate the possibility that the compiler in use represents the decimal point
+   with a comma.
+
 0.02
  - mingw64 compilers segfault on exp(). For these compilers we now have _overload_exp()
    do e ** arg instead of doing exp(arg).
  - Add constants defined in quadmath.h - and add t/13constants.t to check them.
+ - Define PERL_NO_GET_CONTEXT.
 
 0.01
  - First release

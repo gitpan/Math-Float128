@@ -18,3 +18,5 @@ t/10pow.t
 t/11stringification.t
 t/12trig.t
 t/13constants.t
+META.yml                                 Module YAML meta-data (added by MakeMaker)
+META.json                                Module JSON meta-data (added by MakeMaker)

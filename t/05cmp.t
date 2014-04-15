@@ -10,6 +10,11 @@ my $zero = ZeroF128(-1);
 my $unity = UnityF128(1);
 my $inf = InfF128(-1);
 
+# Try to determine when the decimal point is a comma,
+# and set $dp accordingly.
+my $dp = '.';
+$dp = ',' unless Math::Float128->new('0,5') == Math::Float128->new(0);
+
 if($nan != $nan && $nan != $zero && $nan != $unity && $nan != $inf) {print "ok 1\n"}
 else {
   warn "\$nan: $nan\n\$zero: $zero\n\$unity: $unity\n\$inf: $inf\n";
@@ -35,7 +40,7 @@ else {
 }
 
 my $nv = 0.625;
-my $ld = Math::Float128->new('0.625');
+my $ld = Math::Float128->new("0${dp}625");
 
 if(cmp2NV($ld, $nv) == 0) {print "ok 5\n"}
 else {
@@ -63,20 +68,20 @@ my $ok = 1;
 
 for(-10 .. 10) {
   my $ld = Math::Float128->new($_);
-  my $ldg = $ld + Math::Float128->new('0.000000001');
-  my $ldl = $ld - Math::Float128->new('0.000000001');
+  my $ldg = $ld + Math::Float128->new("0${dp}000000001");
+  my $ldl = $ld - Math::Float128->new("0${dp}000000001");
   unless(cmp2NV($ld, $_) == 0) {
-    warn "n\ld: $ld\n\$_: $_\n";
+    warn "\nld: $ld\n\$_: $_\n";
     $ok = 0;
   }
 
   unless(cmp2NV($ldg, $_) == 1) {
-    warn "n\ldg: $ldg\n\$_: $_\n";
+    warn "\nldg: $ldg\n\$_: $_\n";
     $ok = 0;
   }
 
   unless(cmp2NV($ldl, $_) == -1) {
-    warn "n\ldl: $ldl\n\$_: $_\n";
+    warn "\nldl: $ldl\n\$_: $_\n";
     $ok = 0;
   }
 }

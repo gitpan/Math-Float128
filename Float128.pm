@@ -46,7 +46,7 @@ use subs qw(FLT128_DIG FLT128_MANT_DIG FLT128_MIN_EXP FLT128_MAX_EXP FLT128_MIN_
             M_2_SQRTPIq M_SQRT2q M_SQRT1_2q
             FLT128_MAX FLT128_MIN FLT128_EPSILON FLT128_DENORM_MIN);
 
-$Math::Float128::VERSION = '0.02';
+$Math::Float128::VERSION = '0.03';
 
 DynaLoader::bootstrap Math::Float128 $Math::Float128::VERSION;
 
@@ -185,8 +185,9 @@ Math::Float128 - perl interface to C's __float128 operations
 
 =head1 BUGS
 
-  exp() segfaults with Strawberry Perl's 32-bit and 64-bit MinGW compilers.
-  Needs quadmath.h.
+  1) exp() segfaults with Strawberry Perl's 32-bit and 64-bit MinGW
+     compilers.
+  2) Needs quadmath.h in order to build.
 
 
 =head1 DESCRIPTION
