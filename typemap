@@ -1,0 +1,7 @@
+float128 *		FLT128
+
+
+INPUT
+FLT128
+            $var = INT2PTR($type, SvIV(SvRV($arg)));
+

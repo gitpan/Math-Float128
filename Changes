@@ -1,6 +1,12 @@
+0.04
+ - Add metadata to Makefile.PL.
+ - Add f128_bytes()
+ - Add extra quadmath.h functions
+ - Add typemap
+
 0.03
  - Fix t/03arith.t, t/05cmp.t, t/08log_exp.t, t/11stringification.t, and t/13constants.t
-   to accommodate the possibility that the compiler in use represents the decimal point
+   to accommodate the possibility that the locale in use represents the decimal point
    with a comma.
 
 0.02

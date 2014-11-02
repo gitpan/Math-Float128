@@ -9,7 +9,8 @@ my $nv_root = sqrt 2.0;
 my $ld_root = sqrt(Math::Float128->new(2.0));
 my $ld_pow = Math::Float128->new(2.0) ** Math::Float128->new(0.5);
 
-if(cmp2NV($ld_root, $nv_root)) {print "ok 1\n"}
+if(cmp2NV($ld_root, $nv_root) && $Config{nvtype} ne '__float128') {print "ok 1\n"}
+elsif(!cmp2NV($ld_root, $nv_root) && $Config{nvtype} eq '__float128') {print "ok 1\n"}
 else {
   warn "\n\$ld_root: $ld_root\n\$nv_root: $nv_root\n";
   print "not ok 1\n";

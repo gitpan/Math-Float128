@@ -4,6 +4,7 @@ Changes
 Float128.pm
 Float128.xs
 Makefile.PL
+typemap
 t/01load.t
 t/02abs.t
 t/03arith.t
@@ -18,5 +19,7 @@ t/10pow.t
 t/11stringification.t
 t/12trig.t
 t/13constants.t
+t/14f128_bytes.t
+t/15special.t
 META.yml                                 Module YAML meta-data (added by MakeMaker)
 META.json                                Module JSON meta-data (added by MakeMaker)

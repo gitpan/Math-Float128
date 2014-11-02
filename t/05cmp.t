@@ -57,7 +57,8 @@ else {
 $ld = sqrt($ld);
 $nv = sqrt($nv);
 
-if(cmp2NV($ld, $nv)) {print "ok 7\n"}
+if(cmp2NV($ld, $nv) && $Config{nvtype} ne '__float128') {print "ok 7\n"}
+elsif(!cmp2NV($ld, $nv) && $Config{nvtype} eq '__float128') {print "ok 7\n"}
 else {
   warn "\nIF\n\$ld: $ld\n\$nv: $nv\n";
   print "not ok 7\n";
