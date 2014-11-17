@@ -21,5 +21,6 @@ t/12trig.t
 t/13constants.t
 t/14f128_bytes.t
 t/15special.t
+t/16overload.t
 META.yml                                 Module YAML meta-data (added by MakeMaker)
 META.json                                Module JSON meta-data (added by MakeMaker)

@@ -1,3 +1,7 @@
+0.05
+ - Allow UV, IV, NV and PV overloading, and alter accordingly the way that new() assigns
+   these types.
+
 0.04
  - Add metadata to Makefile.PL.
  - Add f128_bytes()

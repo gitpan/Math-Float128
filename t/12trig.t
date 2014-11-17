@@ -4,7 +4,7 @@ use Math::Float128 qw(:all);
 use Math::Trig;
 use Config;
 
-print "1..19\n";
+print "1..21\n";
 
 my $r = 2.0;
 my $r2 = 1.5;
@@ -164,6 +164,22 @@ if($check == Math::Float128->new('5.0')) {print "ok 19\n"}
 else {
   warn "\nExpected 5.0\nGot $check\n";
   print "not ok 19\n";
+}
+
+my $atan2_check1 = atan2(IVtoF128(2), 1.5);
+my $atan2_check2 = atan2("2.0", NVtoF128(1.5));
+my $atan2_check3 = atan2(NVtoF128(2.0), NVtoF128(1.5));
+
+if($atan2_check1 == $atan2_check2) {print "ok 20\n"}
+else {
+  warn "$atan2_check1 != $atan2_check2\n";
+  print "not ok 20\n";
+}
+
+if($atan2_check1 == $atan2_check3) {print "ok 21\n"}
+else {
+  warn "$atan2_check1 != $atan2_check3\n";
+  print "not ok 21\n";
 }
 
 sub approx {

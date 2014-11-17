@@ -1,7 +1,9 @@
 use ExtUtils::MakeMaker;
 use Config;
 
-$defines = $Config{byteorder} =~ /^1234/ ? "-DWE_HAVE_LENDIAN" : "-DWE_HAVE_BENDIAN";
+my $defines = $] < 5.008 ? "-DOLDPERL" : "-DNEWPERL";
+
+$defines .= $Config{byteorder} =~ /^1234/ ? " -DWE_HAVE_LENDIAN" : " -DWE_HAVE_BENDIAN";
 
 $defines .= " -DLONGLONG2IV_IS_OK"
   if $Config{ivsize} >= $Config{longlongsize};

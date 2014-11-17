@@ -316,7 +316,7 @@ SV * _LDBL_DIG(pTHX) {
 #ifdef LDBL_DIG
      return newSViv(LDBL_DIG);
 #else
-     return newSViv(0);
+     croak("LDBL_DIG not implemented");
 #endif
 }
 
@@ -324,7 +324,7 @@ SV * _DBL_DIG(pTHX) {
 #ifdef DBL_DIG
      return newSViv(DBL_DIG);
 #else
-     return newSViv(0);
+     croak("DBL_DIG not implemented");
 #endif
 }
 
@@ -332,7 +332,7 @@ SV * _FLT128_DIG(pTHX) {
 #ifdef FLT128_DIG
      return newSViv(FLT128_DIG);
 #else
-     return newSViv(0);
+     croak("FLT128_DIG not implemented");
 #endif
 }
 
@@ -350,6 +350,26 @@ SV * _overload_add(pTHX_ SV * a, SV * b, SV * third) {
      sv_setiv(obj, INT2PTR(IV,ld));
      SvREADONLY_on(obj);
 
+    if(SvUOK(b)) {
+       *ld = *(INT2PTR(float128 *, SvIV(SvRV(a)))) + (float128)SvUV(b);
+        return obj_ref;
+    }
+
+    if(SvIOK(b)) {
+       *ld = *(INT2PTR(float128 *, SvIV(SvRV(a)))) + (float128)SvIV(b);
+        return obj_ref;
+    }
+
+    if(SvNOK(b)) {
+       *ld = *(INT2PTR(float128 *, SvIV(SvRV(a)))) + (float128)SvNV(b);
+        return obj_ref;
+    }
+
+    if(SvPOK(b)) {
+       *ld = *(INT2PTR(float128 *, SvIV(SvRV(a)))) + strtoflt128(SvPV_nolen(b), NULL);
+        return obj_ref;
+    }
+
     if(sv_isobject(b)) {
        const char *h = HvNAME(SvSTASH(SvRV(b)));
        if(strEQ(h, "Math::Float128")) {
@@ -358,6 +378,7 @@ SV * _overload_add(pTHX_ SV * a, SV * b, SV * third) {
       }
       croak("Invalid object supplied to Math::Float128::_overload_add function");
     }
+
     croak("Invalid argument supplied to Math::Float128::_overload_add function");
 }
 
@@ -374,6 +395,26 @@ SV * _overload_mul(pTHX_ SV * a, SV * b, SV * third) {
 
      sv_setiv(obj, INT2PTR(IV,ld));
      SvREADONLY_on(obj);
+
+    if(SvUOK(b)) {
+       *ld = *(INT2PTR(float128 *, SvIV(SvRV(a)))) * (float128)SvUV(b);
+        return obj_ref;
+    }
+
+    if(SvIOK(b)) {
+       *ld = *(INT2PTR(float128 *, SvIV(SvRV(a)))) * (float128)SvIV(b);
+        return obj_ref;
+    }
+
+    if(SvNOK(b)) {
+       *ld = *(INT2PTR(float128 *, SvIV(SvRV(a)))) * (float128)SvNV(b);
+        return obj_ref;
+    }
+
+    if(SvPOK(b)) {
+       *ld = *(INT2PTR(float128 *, SvIV(SvRV(a)))) * strtoflt128(SvPV_nolen(b), NULL);
+        return obj_ref;
+    }
 
     if(sv_isobject(b)) {
        const char *h = HvNAME(SvSTASH(SvRV(b)));
@@ -399,6 +440,30 @@ SV * _overload_sub(pTHX_ SV * a, SV * b, SV * third) {
      sv_setiv(obj, INT2PTR(IV,ld));
      SvREADONLY_on(obj);
 
+    if(SvUOK(b)) {
+       if(third == &PL_sv_yes) *ld = (float128)SvUV(b) - *(INT2PTR(float128 *, SvIV(SvRV(a))));
+       else *ld = *(INT2PTR(float128 *, SvIV(SvRV(a)))) - (float128)SvUV(b);
+       return obj_ref;
+    }
+
+    if(SvIOK(b)) {
+       if(third == &PL_sv_yes) *ld = (float128)SvIV(b) - *(INT2PTR(float128 *, SvIV(SvRV(a))));
+       else *ld = *(INT2PTR(float128 *, SvIV(SvRV(a)))) - (float128)SvIV(b);
+       return obj_ref;
+    }
+
+    if(SvNOK(b)) {
+       if(third == &PL_sv_yes) *ld = (float128)SvNV(b) - *(INT2PTR(float128 *, SvIV(SvRV(a))));
+       else *ld = *(INT2PTR(float128 *, SvIV(SvRV(a)))) - (float128)SvNV(b);
+       return obj_ref;
+    }
+
+    if(SvPOK(b)) {
+       if(third == &PL_sv_yes) *ld = strtoflt128(SvPV_nolen(b), NULL) - *(INT2PTR(float128 *, SvIV(SvRV(a))));
+       else *ld = *(INT2PTR(float128 *, SvIV(SvRV(a)))) - strtoflt128(SvPV_nolen(b), NULL);
+       return obj_ref;
+    }
+
     if(sv_isobject(b)) {
        const char *h = HvNAME(SvSTASH(SvRV(b)));
        if(strEQ(h, "Math::Float128")) {
@@ -408,12 +473,14 @@ SV * _overload_sub(pTHX_ SV * a, SV * b, SV * third) {
       croak("Invalid object supplied to Math::Float128::_overload_sub function");
     }
 
+    /*
     else {
       if(third == &PL_sv_yes) {
         *ld = *(INT2PTR(float128 *, SvIV(SvRV(a)))) * -1.0L;
         return obj_ref;
       }
     }
+    */
 
     croak("Invalid argument supplied to Math::Float128::_overload_sub function");
 
@@ -432,6 +499,30 @@ SV * _overload_div(pTHX_ SV * a, SV * b, SV * third) {
      sv_setiv(obj, INT2PTR(IV,ld));
      SvREADONLY_on(obj);
 
+    if(SvUOK(b)) {
+       if(third == &PL_sv_yes) *ld = (float128)SvUV(b) / *(INT2PTR(float128 *, SvIV(SvRV(a))));
+       else *ld = *(INT2PTR(float128 *, SvIV(SvRV(a)))) / (float128)SvUV(b);
+       return obj_ref;
+    }
+
+    if(SvIOK(b)) {
+       if(third == &PL_sv_yes) *ld = (float128)SvIV(b) / *(INT2PTR(float128 *, SvIV(SvRV(a))));
+       else *ld = *(INT2PTR(float128 *, SvIV(SvRV(a)))) / (float128)SvIV(b);
+       return obj_ref;
+    }
+
+    if(SvNOK(b)) {
+       if(third == &PL_sv_yes) *ld = (float128)SvNV(b) / *(INT2PTR(float128 *, SvIV(SvRV(a))));
+       else *ld = *(INT2PTR(float128 *, SvIV(SvRV(a)))) / (float128)SvNV(b);
+       return obj_ref;
+    }
+
+    if(SvPOK(b)) {
+       if(third == &PL_sv_yes) *ld = strtoflt128(SvPV_nolen(b), NULL) / *(INT2PTR(float128 *, SvIV(SvRV(a))));
+       else *ld = *(INT2PTR(float128 *, SvIV(SvRV(a)))) / strtoflt128(SvPV_nolen(b), NULL);
+       return obj_ref;
+    }
+
     if(sv_isobject(b)) {
        const char *h = HvNAME(SvSTASH(SvRV(b)));
        if(strEQ(h, "Math::Float128")) {
@@ -444,27 +535,69 @@ SV * _overload_div(pTHX_ SV * a, SV * b, SV * third) {
 }
 
 SV * _overload_equiv(pTHX_ SV * a, SV * b, SV * third) {
-     if(sv_isobject(b)) {
-       const char *h = HvNAME(SvSTASH(SvRV(b)));
-       if(strEQ(h, "Math::Float128")) {
-         if(*(INT2PTR(float128 *, SvIV(SvRV(a)))) == *(INT2PTR(float128 *, SvIV(SvRV(b))))) return newSViv(1);
-         return newSViv(0);
-       }
-       croak("Invalid object supplied to Math::Float128::_overload_equiv function");
-     }
-     croak("Invalid argument supplied to Math::Float128::_overload_equiv function");
+
+    if(SvUOK(b)) {
+       if(*(INT2PTR(float128 *, SvIV(SvRV(a)))) == (float128)SvUV(b)) return newSViv(1);
+        return newSViv(0);
+    }
+
+    if(SvIOK(b)) {
+       if(*(INT2PTR(float128 *, SvIV(SvRV(a)))) == (float128)SvIV(b)) return newSViv(1);
+        return newSViv(0);
+    }
+
+    if(SvNOK(b)) {
+       if(*(INT2PTR(float128 *, SvIV(SvRV(a)))) == (float128)SvNV(b)) return newSViv(1);
+        return newSViv(0);
+    }
+
+    if(SvPOK(b)) {
+       if(*(INT2PTR(float128 *, SvIV(SvRV(a)))) == strtoflt128(SvPV_nolen(b), NULL)) return newSViv(1);
+        return newSViv(0);
+    }
+
+    if(sv_isobject(b)) {
+      const char *h = HvNAME(SvSTASH(SvRV(b)));
+      if(strEQ(h, "Math::Float128")) {
+        if(*(INT2PTR(float128 *, SvIV(SvRV(a)))) == *(INT2PTR(float128 *, SvIV(SvRV(b))))) return newSViv(1);
+        return newSViv(0);
+      }
+      croak("Invalid object supplied to Math::Float128::_overload_equiv function");
+    }
+    croak("Invalid argument supplied to Math::Float128::_overload_equiv function");
 }
 
 SV * _overload_not_equiv(pTHX_ SV * a, SV * b, SV * third) {
-     if(sv_isobject(b)) {
-       const char *h = HvNAME(SvSTASH(SvRV(b)));
-       if(strEQ(h, "Math::Float128")) {
-         if(*(INT2PTR(float128 *, SvIV(SvRV(a)))) == *(INT2PTR(float128 *, SvIV(SvRV(b))))) return newSViv(0);
-         return newSViv(1);
-       }
-       croak("Invalid object supplied to Math::Float128::_overload_not_equiv function");
-     }
-     croak("Invalid argument supplied to Math::Float128::_overload_not_equiv function");
+
+    if(SvUOK(b)) {
+       if(*(INT2PTR(float128 *, SvIV(SvRV(a)))) != (float128)SvUV(b)) return newSViv(1);
+        return newSViv(0);
+    }
+
+    if(SvIOK(b)) {
+       if(*(INT2PTR(float128 *, SvIV(SvRV(a)))) != (float128)SvIV(b)) return newSViv(1);
+        return newSViv(0);
+    }
+
+    if(SvNOK(b)) {
+       if(*(INT2PTR(float128 *, SvIV(SvRV(a)))) != (float128)SvNV(b)) return newSViv(1);
+        return newSViv(0);
+    }
+
+    if(SvPOK(b)) {
+       if(*(INT2PTR(float128 *, SvIV(SvRV(a)))) != strtoflt128(SvPV_nolen(b), NULL)) return newSViv(1);
+        return newSViv(0);
+    }
+
+    if(sv_isobject(b)) {
+      const char *h = HvNAME(SvSTASH(SvRV(b)));
+      if(strEQ(h, "Math::Float128")) {
+        if(*(INT2PTR(float128 *, SvIV(SvRV(a)))) == *(INT2PTR(float128 *, SvIV(SvRV(b))))) return newSViv(0);
+        return newSViv(1);
+      }
+      croak("Invalid object supplied to Math::Float128::_overload_not_equiv function");
+    }
+    croak("Invalid argument supplied to Math::Float128::_overload_not_equiv function");
 }
 
 SV * _overload_true(pTHX_ SV * a, SV * b, SV * third) {
@@ -482,7 +615,27 @@ SV * _overload_not(pTHX_ SV * a, SV * b, SV * third) {
 
 SV * _overload_add_eq(pTHX_ SV * a, SV * b, SV * third) {
 
-     SvREFCNT_inc(a);
+    SvREFCNT_inc(a);
+
+    if(SvUOK(b)) {
+       *(INT2PTR(float128 *, SvIV(SvRV(a)))) += (float128)SvUV(b);
+        return a;
+    }
+
+    if(SvIOK(b)) {
+       *(INT2PTR(float128 *, SvIV(SvRV(a)))) += (float128)SvIV(b);
+        return a;
+    }
+
+    if(SvNOK(b)) {
+       *(INT2PTR(float128 *, SvIV(SvRV(a)))) += (float128)SvNV(b);
+        return a;
+    }
+
+    if(SvPOK(b)) {
+       *(INT2PTR(float128 *, SvIV(SvRV(a)))) += strtoflt128(SvPV_nolen(b), NULL);
+        return a;
+    }
 
     if(sv_isobject(b)) {
        const char *h = HvNAME(SvSTASH(SvRV(b)));
@@ -499,7 +652,27 @@ SV * _overload_add_eq(pTHX_ SV * a, SV * b, SV * third) {
 
 SV * _overload_mul_eq(pTHX_ SV * a, SV * b, SV * third) {
 
-     SvREFCNT_inc(a);
+    SvREFCNT_inc(a);
+
+    if(SvUOK(b)) {
+       *(INT2PTR(float128 *, SvIV(SvRV(a)))) *= (float128)SvUV(b);
+        return a;
+    }
+
+    if(SvIOK(b)) {
+       *(INT2PTR(float128 *, SvIV(SvRV(a)))) *= (float128)SvIV(b);
+        return a;
+    }
+
+    if(SvNOK(b)) {
+       *(INT2PTR(float128 *, SvIV(SvRV(a)))) *= (float128)SvNV(b);
+        return a;
+    }
+
+    if(SvPOK(b)) {
+       *(INT2PTR(float128 *, SvIV(SvRV(a)))) *= strtoflt128(SvPV_nolen(b), NULL);
+        return a;
+    }
 
     if(sv_isobject(b)) {
        const char *h = HvNAME(SvSTASH(SvRV(b)));
@@ -516,7 +689,27 @@ SV * _overload_mul_eq(pTHX_ SV * a, SV * b, SV * third) {
 
 SV * _overload_sub_eq(pTHX_ SV * a, SV * b, SV * third) {
 
-     SvREFCNT_inc(a);
+    SvREFCNT_inc(a);
+
+    if(SvUOK(b)) {
+       *(INT2PTR(float128 *, SvIV(SvRV(a)))) -= (float128)SvUV(b);
+        return a;
+    }
+
+    if(SvIOK(b)) {
+       *(INT2PTR(float128 *, SvIV(SvRV(a)))) -= (float128)SvIV(b);
+        return a;
+    }
+
+    if(SvNOK(b)) {
+       *(INT2PTR(float128 *, SvIV(SvRV(a)))) -= (float128)SvNV(b);
+        return a;
+    }
+
+    if(SvPOK(b)) {
+       *(INT2PTR(float128 *, SvIV(SvRV(a)))) -= strtoflt128(SvPV_nolen(b), NULL);
+        return a;
+    }
 
     if(sv_isobject(b)) {
        const char *h = HvNAME(SvSTASH(SvRV(b)));
@@ -533,7 +726,27 @@ SV * _overload_sub_eq(pTHX_ SV * a, SV * b, SV * third) {
 
 SV * _overload_div_eq(pTHX_ SV * a, SV * b, SV * third) {
 
-     SvREFCNT_inc(a);
+    SvREFCNT_inc(a);
+
+    if(SvUOK(b)) {
+       *(INT2PTR(float128 *, SvIV(SvRV(a)))) /= (float128)SvUV(b);
+        return a;
+    }
+
+    if(SvIOK(b)) {
+       *(INT2PTR(float128 *, SvIV(SvRV(a)))) /= (float128)SvIV(b);
+        return a;
+    }
+
+    if(SvNOK(b)) {
+       *(INT2PTR(float128 *, SvIV(SvRV(a)))) /= (float128)SvNV(b);
+        return a;
+    }
+
+    if(SvPOK(b)) {
+       *(INT2PTR(float128 *, SvIV(SvRV(a)))) /= strtoflt128(SvPV_nolen(b), NULL);
+        return a;
+    }
 
     if(sv_isobject(b)) {
        const char *h = HvNAME(SvSTASH(SvRV(b)));
@@ -550,44 +763,124 @@ SV * _overload_div_eq(pTHX_ SV * a, SV * b, SV * third) {
 
 SV * _overload_lt(pTHX_ SV * a, SV * b, SV * third) {
 
-     if(sv_isobject(b)) {
-       const char *h = HvNAME(SvSTASH(SvRV(b)));
-       if(strEQ(h, "Math::Float128")) {
-         if(*(INT2PTR(float128 *, SvIV(SvRV(a)))) < *(INT2PTR(float128 *, SvIV(SvRV(b))))) return newSViv(1);
-         return newSViv(0);
-       }
-       croak("Invalid object supplied to Math::Float128::_overload_lt function");
-     }
-     croak("Invalid argument supplied to Math::Float128::_overload_lt function");
+    if(SvUOK(b)) {
+       if(*(INT2PTR(float128 *, SvIV(SvRV(a)))) < (float128)SvUV(b)) return newSViv(1);
+        return newSViv(0);
+    }
+
+    if(SvIOK(b)) {
+       if(*(INT2PTR(float128 *, SvIV(SvRV(a)))) < (float128)SvIV(b)) return newSViv(1);
+        return newSViv(0);
+    }
+
+    if(SvNOK(b)) {
+       if(*(INT2PTR(float128 *, SvIV(SvRV(a)))) < (float128)SvNV(b)) return newSViv(1);
+        return newSViv(0);
+    }
+
+    if(SvPOK(b)) {
+       if(*(INT2PTR(float128 *, SvIV(SvRV(a)))) < strtoflt128(SvPV_nolen(b), NULL)) return newSViv(1);
+        return newSViv(0);
+    }
+
+    if(sv_isobject(b)) {
+      const char *h = HvNAME(SvSTASH(SvRV(b)));
+      if(strEQ(h, "Math::Float128")) {
+        if(*(INT2PTR(float128 *, SvIV(SvRV(a)))) < *(INT2PTR(float128 *, SvIV(SvRV(b))))) return newSViv(1);
+        return newSViv(0);
+      }
+      croak("Invalid object supplied to Math::Float128::_overload_lt function");
+    }
+    croak("Invalid argument supplied to Math::Float128::_overload_lt function");
 }
 
 SV * _overload_gt(pTHX_ SV * a, SV * b, SV * third) {
 
-     if(sv_isobject(b)) {
-       const char *h = HvNAME(SvSTASH(SvRV(b)));
-       if(strEQ(h, "Math::Float128")) {
-         if(*(INT2PTR(float128 *, SvIV(SvRV(a)))) > *(INT2PTR(float128 *, SvIV(SvRV(b))))) return newSViv(1);
-         return newSViv(0);
-       }
-       croak("Invalid object supplied to Math::Float128::_overload_gt function");
-     }
+    if(SvUOK(b)) {
+       if(*(INT2PTR(float128 *, SvIV(SvRV(a)))) > (float128)SvUV(b)) return newSViv(1);
+        return newSViv(0);
+    }
+
+    if(SvIOK(b)) {
+       if(*(INT2PTR(float128 *, SvIV(SvRV(a)))) > (float128)SvIV(b)) return newSViv(1);
+        return newSViv(0);
+    }
+
+    if(SvNOK(b)) {
+       if(*(INT2PTR(float128 *, SvIV(SvRV(a)))) > (float128)SvNV(b)) return newSViv(1);
+        return newSViv(0);
+    }
+
+    if(SvPOK(b)) {
+       if(*(INT2PTR(float128 *, SvIV(SvRV(a)))) > strtoflt128(SvPV_nolen(b), NULL)) return newSViv(1);
+        return newSViv(0);
+    }
+
+    if(sv_isobject(b)) {
+      const char *h = HvNAME(SvSTASH(SvRV(b)));
+      if(strEQ(h, "Math::Float128")) {
+        if(*(INT2PTR(float128 *, SvIV(SvRV(a)))) > *(INT2PTR(float128 *, SvIV(SvRV(b))))) return newSViv(1);
+        return newSViv(0);
+      }
+      croak("Invalid object supplied to Math::Float128::_overload_gt function");
+    }
      croak("Invalid argument supplied to Math::Float128::_overload_gt function");
 }
 
 SV * _overload_lte(pTHX_ SV * a, SV * b, SV * third) {
 
-     if(sv_isobject(b)) {
-       const char *h = HvNAME(SvSTASH(SvRV(b)));
-       if(strEQ(h, "Math::Float128")) {
-         if(*(INT2PTR(float128 *, SvIV(SvRV(a)))) <= *(INT2PTR(float128 *, SvIV(SvRV(b))))) return newSViv(1);
-         return newSViv(0);
-       }
-       croak("Invalid object supplied to Math::Float128::_overload_lte function");
-     }
-     croak("Invalid argument supplied to Math::Float128::_overload_lte function");
+    if(SvUOK(b)) {
+       if(*(INT2PTR(float128 *, SvIV(SvRV(a)))) <= (float128)SvUV(b)) return newSViv(1);
+        return newSViv(0);
+    }
+
+    if(SvIOK(b)) {
+       if(*(INT2PTR(float128 *, SvIV(SvRV(a)))) <= (float128)SvIV(b)) return newSViv(1);
+        return newSViv(0);
+    }
+
+    if(SvNOK(b)) {
+       if(*(INT2PTR(float128 *, SvIV(SvRV(a)))) <= (float128)SvNV(b)) return newSViv(1);
+        return newSViv(0);
+    }
+
+    if(SvPOK(b)) {
+       if(*(INT2PTR(float128 *, SvIV(SvRV(a)))) <= strtoflt128(SvPV_nolen(b), NULL)) return newSViv(1);
+        return newSViv(0);
+    }
+
+    if(sv_isobject(b)) {
+      const char *h = HvNAME(SvSTASH(SvRV(b)));
+      if(strEQ(h, "Math::Float128")) {
+        if(*(INT2PTR(float128 *, SvIV(SvRV(a)))) <= *(INT2PTR(float128 *, SvIV(SvRV(b))))) return newSViv(1);
+        return newSViv(0);
+      }
+      croak("Invalid object supplied to Math::Float128::_overload_lte function");
+    }
+    croak("Invalid argument supplied to Math::Float128::_overload_lte function");
 }
 
 SV * _overload_gte(pTHX_ SV * a, SV * b, SV * third) {
+
+    if(SvUOK(b)) {
+       if(*(INT2PTR(float128 *, SvIV(SvRV(a)))) >= (float128)SvUV(b)) return newSViv(1);
+        return newSViv(0);
+    }
+
+    if(SvIOK(b)) {
+       if(*(INT2PTR(float128 *, SvIV(SvRV(a)))) >= (float128)SvIV(b)) return newSViv(1);
+        return newSViv(0);
+    }
+
+    if(SvNOK(b)) {
+       if(*(INT2PTR(float128 *, SvIV(SvRV(a)))) >= (float128)SvNV(b)) return newSViv(1);
+        return newSViv(0);
+    }
+
+    if(SvPOK(b)) {
+       if(*(INT2PTR(float128 *, SvIV(SvRV(a)))) >= strtoflt128(SvPV_nolen(b), NULL)) return newSViv(1);
+        return newSViv(0);
+    }
 
      if(sv_isobject(b)) {
        const char *h = HvNAME(SvSTASH(SvRV(b)));
@@ -602,9 +895,37 @@ SV * _overload_gte(pTHX_ SV * a, SV * b, SV * third) {
 
 SV * _overload_spaceship(pTHX_ SV * a, SV * b, SV * third) {
 
+    if(SvUOK(b)) {
+       if(*(INT2PTR(float128 *, SvIV(SvRV(a)))) == (float128)SvUV(b)) return newSViv( 0);
+       if(*(INT2PTR(float128 *, SvIV(SvRV(a)))) <  (float128)SvUV(b)) return newSViv(-1);
+       if(*(INT2PTR(float128 *, SvIV(SvRV(a)))) >  (float128)SvUV(b)) return newSViv( 1);
+       return &PL_sv_undef; /* it's a nan */
+    }
+
+    if(SvIOK(b)) {
+       if(*(INT2PTR(float128 *, SvIV(SvRV(a)))) == (float128)SvIV(b)) return newSViv( 0);
+       if(*(INT2PTR(float128 *, SvIV(SvRV(a)))) <  (float128)SvIV(b)) return newSViv(-1);
+       if(*(INT2PTR(float128 *, SvIV(SvRV(a)))) >  (float128)SvIV(b)) return newSViv( 1);
+       return &PL_sv_undef; /* it's a nan */
+    }
+
+    if(SvNOK(b)) {
+       if(*(INT2PTR(float128 *, SvIV(SvRV(a)))) == (float128)SvNV(b)) return newSViv( 0);
+       if(*(INT2PTR(float128 *, SvIV(SvRV(a)))) <  (float128)SvNV(b)) return newSViv(-1);
+       if(*(INT2PTR(float128 *, SvIV(SvRV(a)))) >  (float128)SvNV(b)) return newSViv( 1);
+       return &PL_sv_undef; /* it's a nan */
+    }
+
+    if(SvPOK(b)) {
+       if(*(INT2PTR(float128 *, SvIV(SvRV(a)))) == strtoflt128(SvPV_nolen(b), NULL)) return newSViv( 0);
+       if(*(INT2PTR(float128 *, SvIV(SvRV(a)))) <  strtoflt128(SvPV_nolen(b), NULL)) return newSViv(-1);
+       if(*(INT2PTR(float128 *, SvIV(SvRV(a)))) >  strtoflt128(SvPV_nolen(b), NULL)) return newSViv( 1);
+       return &PL_sv_undef; /* it's a nan */
+    }
+
     if(sv_isobject(b)) {
-       const char *h = HvNAME(SvSTASH(SvRV(b)));
-       if(strEQ(h, "Math::Float128")) {
+      const char *h = HvNAME(SvSTASH(SvRV(b)));
+      if(strEQ(h, "Math::Float128")) {
         if(*(INT2PTR(float128 *, SvIV(SvRV(a)))) < *(INT2PTR(float128 *, SvIV(SvRV(b))))) return newSViv(-1);
         if(*(INT2PTR(float128 *, SvIV(SvRV(a)))) > *(INT2PTR(float128 *, SvIV(SvRV(b))))) return newSViv(1);
         if(*(INT2PTR(float128 *, SvIV(SvRV(a)))) == *(INT2PTR(float128 *, SvIV(SvRV(b))))) return newSViv(0);
@@ -807,14 +1128,48 @@ SV * _overload_atan2(pTHX_ SV * a, SV * b, SV * third) {
      Newx(f, 1, float128);
      if(f == NULL) croak("Failed to allocate memory in _overload_atan2 function");
 
-     *f = atan2q(*(INT2PTR(float128 *, SvIV(SvRV(a)))), *(INT2PTR(float128 *, SvIV(SvRV(b)))));
-
-
      obj_ref = newSV(0);
      obj = newSVrv(obj_ref, "Math::Float128");
      sv_setiv(obj, INT2PTR(IV,f));
      SvREADONLY_on(obj);
-     return obj_ref;
+
+     if(SvUOK(b)) {
+       if(third == &PL_sv_yes)
+            *f = atan2q((float128)SvUV(b), *(INT2PTR(float128 *, SvIV(SvRV(a)))));
+       else *f = atan2q(*(INT2PTR(float128 *, SvIV(SvRV(a)))), (float128)SvUV(b));
+       return obj_ref;
+     }
+
+     if(SvIOK(b)) {
+       if(third == &PL_sv_yes)
+            *f = atan2q((float128)SvIV(b), *(INT2PTR(float128 *, SvIV(SvRV(a)))));
+       else *f = atan2q(*(INT2PTR(float128 *, SvIV(SvRV(a)))), (float128)SvIV(b));
+       return obj_ref;
+     }
+
+     if(SvNOK(b)) {
+       if(third == &PL_sv_yes)
+            *f = atan2q((float128)SvNV(b), *(INT2PTR(float128 *, SvIV(SvRV(a)))));
+       else *f = atan2q(*(INT2PTR(float128 *, SvIV(SvRV(a)))), (float128)SvNV(b));
+       return obj_ref;
+     }
+
+     if(SvPOK(b)) {
+       if(third == &PL_sv_yes)
+            *f = atan2q(strtoflt128(SvPV_nolen(b), NULL), *(INT2PTR(float128 *, SvIV(SvRV(a)))));
+       else *f = atan2q(*(INT2PTR(float128 *, SvIV(SvRV(a)))), strtoflt128(SvPV_nolen(b), NULL));
+       return obj_ref;
+     }
+
+     if(sv_isobject(b)) {
+       const char *h = HvNAME(SvSTASH(SvRV(b)));
+       if(strEQ(h, "Math::Float128")) {
+         *f = atan2q(*(INT2PTR(float128 *, SvIV(SvRV(a)))), *(INT2PTR(float128 *, SvIV(SvRV(b)))));
+         return obj_ref;
+       }
+       croak("Invalid object supplied to Math::Float128::_overload_atan2 function");
+     }
+     croak("Invalid argument supplied to Math::Float128::_overload_atan2 function");
 }
 
 SV * _overload_inc(pTHX_ SV * a, SV * b, SV * third) {
@@ -845,9 +1200,36 @@ SV * _overload_pow(pTHX_ SV * a, SV * b, SV * third) {
 
      obj_ref = newSV(0);
      obj = newSVrv(obj_ref, "Math::Float128");
-
      sv_setiv(obj, INT2PTR(IV,f));
      SvREADONLY_on(obj);
+
+     if(SvUOK(b)) {
+       if(third == &PL_sv_yes)
+            *f = powq((float128)SvUV(b), *(INT2PTR(float128 *, SvIV(SvRV(a)))));
+       else *f = powq(*(INT2PTR(float128 *, SvIV(SvRV(a)))), (float128)SvUV(b));
+       return obj_ref;
+     }
+
+     if(SvIOK(b)) {
+       if(third == &PL_sv_yes)
+            *f = powq((float128)SvIV(b), *(INT2PTR(float128 *, SvIV(SvRV(a)))));
+       else *f = powq(*(INT2PTR(float128 *, SvIV(SvRV(a)))), (float128)SvIV(b));
+       return obj_ref;
+     }
+
+     if(SvNOK(b)) {
+       if(third == &PL_sv_yes)
+            *f = powq((float128)SvNV(b), *(INT2PTR(float128 *, SvIV(SvRV(a)))));
+       else *f = powq(*(INT2PTR(float128 *, SvIV(SvRV(a)))), (float128)SvNV(b));
+       return obj_ref;
+     }
+
+     if(SvPOK(b)) {
+       if(third == &PL_sv_yes)
+            *f = powq(strtoflt128(SvPV_nolen(b), NULL), *(INT2PTR(float128 *, SvIV(SvRV(a)))));
+       else *f = powq(*(INT2PTR(float128 *, SvIV(SvRV(a)))), strtoflt128(SvPV_nolen(b), NULL));
+       return obj_ref;
+     }
 
     if(sv_isobject(b)) {
        const char *h = HvNAME(SvSTASH(SvRV(b)));
@@ -862,11 +1244,35 @@ SV * _overload_pow(pTHX_ SV * a, SV * b, SV * third) {
 
 SV * _overload_pow_eq(pTHX_ SV * a, SV * b, SV * third) {
 
-     SvREFCNT_inc(a);
+    SvREFCNT_inc(a);
+
+    if(SvUOK(b)) {
+       *(INT2PTR(float128 *, SvIV(SvRV(a)))) = powq(*(INT2PTR(float128 *, SvIV(SvRV(a)))),
+                                                    (float128)SvUV(b));
+        return a;
+    }
+
+    if(SvIOK(b)) {
+       *(INT2PTR(float128 *, SvIV(SvRV(a)))) = powq(*(INT2PTR(float128 *, SvIV(SvRV(a)))),
+                                                    (float128)SvIV(b));
+        return a;
+    }
+
+    if(SvNOK(b)) {
+       *(INT2PTR(float128 *, SvIV(SvRV(a)))) = powq(*(INT2PTR(float128 *, SvIV(SvRV(a)))),
+                                                    (float128)SvNV(b));
+        return a;
+    }
+
+    if(SvPOK(b)) {
+       *(INT2PTR(float128 *, SvIV(SvRV(a)))) = powq(*(INT2PTR(float128 *, SvIV(SvRV(a)))),
+                                                    strtoflt128(SvPV_nolen(b), NULL));
+        return a;
+    }
 
     if(sv_isobject(b)) {
-       const char *h = HvNAME(SvSTASH(SvRV(b)));
-       if(strEQ(h, "Math::Float128")) {
+      const char *h = HvNAME(SvSTASH(SvRV(b)));
+      if(strEQ(h, "Math::Float128")) {
         *(INT2PTR(float128 *, SvIV(SvRV(a)))) = powq(*(INT2PTR(float128 *, SvIV(SvRV(a)))),
                                                         *(INT2PTR(float128 *, SvIV(SvRV(b)))));
         return a;
@@ -905,6 +1311,7 @@ SV * F128toNV(pTHX_ SV * f) {
 /* #define FLT128_MAX 1.18973149535723176508575932662800702e4932Q */
 
 SV * _FLT128_MAX(pTHX) {
+#ifdef FLT128_MAX
      float128 * f;
      SV * obj_ref, * obj;
 
@@ -919,11 +1326,15 @@ SV * _FLT128_MAX(pTHX) {
      sv_setiv(obj, INT2PTR(IV,f));
      SvREADONLY_on(obj);
      return obj_ref;
+#else
+     croak("FLT128_MAX not implemented");
+#endif
 }
 
 /* #define FLT128_MIN 3.36210314311209350626267781732175260e-4932Q */
 
 SV * _FLT128_MIN(pTHX) {
+#ifdef FLT128_MIN
      float128 * f;
      SV * obj_ref, * obj;
 
@@ -938,11 +1349,15 @@ SV * _FLT128_MIN(pTHX) {
      sv_setiv(obj, INT2PTR(IV,f));
      SvREADONLY_on(obj);
      return obj_ref;
+#else
+     croak("FLT128_MIN not implemented");
+#endif
 }
 
 /* #define FLT128_EPSILON 1.92592994438723585305597794258492732e-34Q */
 
 SV * _FLT128_EPSILON(pTHX) {
+#ifdef FLT128_EPSILON
      float128 * f;
      SV * obj_ref, * obj;
 
@@ -957,12 +1372,16 @@ SV * _FLT128_EPSILON(pTHX) {
      sv_setiv(obj, INT2PTR(IV,f));
      SvREADONLY_on(obj);
      return obj_ref;
+#else
+     croak("FLT128_EPSILON not implemented");
+#endif
 }
 
 /* #define FLT128_DENORM_MIN 6.475175119438025110924438958227646552e-4966Q */
 
 
 SV * _FLT128_DENORM_MIN(pTHX) {
+#ifdef FLT128_DENORM_MIN
      float128 * f;
      SV * obj_ref, * obj;
 
@@ -977,36 +1396,59 @@ SV * _FLT128_DENORM_MIN(pTHX) {
      sv_setiv(obj, INT2PTR(IV,f));
      SvREADONLY_on(obj);
      return obj_ref;
+#else
+     croak("FLT128_DENORM_MIN not implemented");
+#endif
 }
 
 /* #define FLT128_MANT_DIG 113 */
 
 int _FLT128_MANT_DIG(void) {
+#ifdef FLT128_MANT_DIG
     return (int)FLT128_MANT_DIG;
+#else
+    croak("FLT128_MANT_DIG not implemented");
+#endif
 }
 
 /* #define FLT128_MIN_EXP (-16381) */
 
 int _FLT128_MIN_EXP(void) {
+#ifdef FLT128_MIN_EXP
     return (int)FLT128_MIN_EXP;
+#else
+    croak("FLT128_MIN_EXP not implemented");
+#endif
 }
 
 /* #define FLT128_MAX_EXP 16384 */
 
 int _FLT128_MAX_EXP(void) {
+#ifdef FLT128_MAX_EXP
     return (int)FLT128_MAX_EXP;
+#else
+    croak("FLT128_MAX_EXP not implemented");
+#endif
 }
 
 /* #define FLT128_MIN_10_EXP (-4931) */
 
 int _FLT128_MIN_10_EXP(void) {
+#ifdef FLT128_MIN_10_EXP
     return (int)FLT128_MIN_10_EXP;
+#else
+    croak("FLT128_MIN_10_EXP not implemented");
+#endif
 }
 
 /* #define FLT128_MAX_10_EXP 4932 */
 
 int _FLT128_MAX_10_EXP(void) {
+#ifdef FLT128_MAX_10_EXP
     return (int)FLT128_MAX_10_EXP;
+#else
+    croak("FLT128_MAX_10_EXP not implemented");
+#endif
 }
 
 /* #define HUGE_VALQ __builtin_huge_valq() */
@@ -1015,6 +1457,9 @@ int _FLT128_MAX_10_EXP(void) {
 /*#define M_Eq		2.7182818284590452353602874713526625Q */  /* e */
 
 SV * _M_Eq(pTHX) {
+#ifndef M_Eq
+#define M_Eq expq(1.0Q)
+#endif
      float128 * f;
      SV * obj_ref, * obj;
 
@@ -1034,6 +1479,9 @@ SV * _M_Eq(pTHX) {
 /* #define M_LOG2Eq	1.4426950408889634073599246810018921Q */  /* log_2 e */
 
 SV * _M_LOG2Eq(pTHX) {
+#ifndef M_LOG2Eq
+#define M_LOG2Eq log2q(expq(1.0Q))
+#endif
      float128 * f;
      SV * obj_ref, * obj;
 
@@ -1053,6 +1501,9 @@ SV * _M_LOG2Eq(pTHX) {
 /* #define M_LOG10Eq	0.4342944819032518276511289189166051Q */  /* log_10 e */
 
 SV * _M_LOG10Eq(pTHX) {
+#ifndef M_LOG10Eq
+#define M_LOG10Eq lo10q(expq(1.0Q))
+#endif
      float128 * f;
      SV * obj_ref, * obj;
 
@@ -1072,6 +1523,9 @@ SV * _M_LOG10Eq(pTHX) {
 /* #define M_LN2q		0.6931471805599453094172321214581766Q */  /* log_e 2 */
 
 SV * _M_LN2q(pTHX) {
+#ifndef M_LN2q
+#define M_LN2q logq(2.0Q)
+#endif
      float128 * f;
      SV * obj_ref, * obj;
 
@@ -1091,6 +1545,9 @@ SV * _M_LN2q(pTHX) {
 /* #define M_LN10q		2.3025850929940456840179914546843642Q */ /* log_e 10 */
 
 SV * _M_LN10q(pTHX) {
+#ifndef M_LN10q
+#define M_LN10q logq(10.0Q)
+#endif
      float128 * f;
      SV * obj_ref, * obj;
 
@@ -1110,6 +1567,9 @@ SV * _M_LN10q(pTHX) {
 /* #define M_PIq		3.1415926535897932384626433832795029Q */  /* pi */
 
 SV * _M_PIq(pTHX) {
+#ifndef M_PIq
+#define M_PIq 2.0Q*asinq(1.0Q)
+#endif
      float128 * f;
      SV * obj_ref, * obj;
 
@@ -1129,6 +1589,9 @@ SV * _M_PIq(pTHX) {
 /* #define M_PI_2q		1.5707963267948966192313216916397514Q */  /* pi/2 */
 
 SV * _M_PI_2q(pTHX) {
+#ifndef M_PI_2q
+#define M_PI_2q asinq(1.0Q)
+#endif
      float128 * f;
      SV * obj_ref, * obj;
 
@@ -1148,6 +1611,9 @@ SV * _M_PI_2q(pTHX) {
 /* #define M_PI_4q		0.7853981633974483096156608458198757Q */  /* pi/4 */
 
 SV * _M_PI_4q(pTHX) {
+#ifndef M_PI_4q
+#define M_PI_4q asinq(1.0Q)/2.0Q
+#endif
      float128 * f;
      SV * obj_ref, * obj;
 
@@ -1167,6 +1633,9 @@ SV * _M_PI_4q(pTHX) {
 /* #define M_1_PIq		0.3183098861837906715377675267450287Q */  /* 1/pi */
 
 SV * _M_1_PIq(pTHX) {
+#ifndef M_1_PIq
+#define M_1_PIq 0.5Q/asinq(1.0Q)
+#endif
      float128 * f;
      SV * obj_ref, * obj;
 
@@ -1186,6 +1655,9 @@ SV * _M_1_PIq(pTHX) {
 /* #define M_2_PIq		0.6366197723675813430755350534900574Q */  /* 2/pi */
 
 SV * _M_2_PIq(pTHX) {
+#ifndef M_2_PIq
+#define M_2_PIq 1.0Q/asinq(1.0Q)
+#endif
      float128 * f;
      SV * obj_ref, * obj;
 
@@ -1205,6 +1677,9 @@ SV * _M_2_PIq(pTHX) {
 /* #define M_2_SQRTPIq	1.1283791670955125738961589031215452Q */  /* 2/sqrt(pi) */
 
 SV * _M_2_SQRTPIq(pTHX) {
+#ifndef M_2_SQRTPIq
+#define M_2_SQRTPIq 2.0Q/sqrtq(2.0Q*asinq(1.0Q))
+#endif
      float128 * f;
      SV * obj_ref, * obj;
 
@@ -1224,6 +1699,9 @@ SV * _M_2_SQRTPIq(pTHX) {
 /* #define M_SQRT2q	1.4142135623730950488016887242096981Q */  /* sqrt(2) */
 
 SV * _M_SQRT2q(pTHX) {
+#ifndef M_SQRT2q
+#define M_SQRT2q sqrtq(2.0Q)
+#endif
      float128 * f;
      SV * obj_ref, * obj;
 
@@ -1243,6 +1721,9 @@ SV * _M_SQRT2q(pTHX) {
 /* #define M_SQRT1_2q	0.7071067811865475244008443621048490Q */  /* 1/sqrt(2) */
 
 SV * _M_SQRT1_2q(pTHX) {
+#ifndef M_SQRT1_2q
+#define M_SQRT1_2q 1.0Q/sqrtq(2.0Q)
+#endif
      float128 * f;
      SV * obj_ref, * obj;
 
@@ -1656,7 +2137,11 @@ int _long2iv_is_ok(void) {
 
 /* FLT_RADIX is probably 2, but we can use this if we need to be sure. */
 int _flt_radix(void) {
+#ifdef FLT_RADIX
   return (int)FLT_RADIX;
+#else
+  return 0;
+#endif
 }
 
 SV * _fegetround(pTHX) {

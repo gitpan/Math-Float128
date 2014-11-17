@@ -148,7 +148,8 @@ else {
   print "not ok 17\n";
 }
 
-my $flt_radix = Math::Float128::_flt_radix();
+# Guess that FLT_RADIX is 2 if it's not defined.
+my $flt_radix = Math::Float128::_flt_radix() || 2;
 
 
 scalbln_F128($check, NVtoF128(-543.25), 5);
